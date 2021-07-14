@@ -170,21 +170,6 @@ resource "vcd_nsxv_dnat" "rule_internet_ssh5" {
   translated_port    = "any"
   protocol           = "tcp"
 }
-# Create DNAT rule to allow SSH from the Internet
-resource "vcd_nsxv_dnat" "rule_internet_ssh6" {
-  count = tobool(var.allow_ssh) == true ? 1 :0
-
-  edge_gateway = module.ibm_vmware_solutions_shared_instance.edge_gateway_name
-  network_type = "ext"
-  network_name = module.ibm_vmware_solutions_shared_instance.external_network_name_2
-
-  original_address = element(local.publiciplist, 5)
-  original_port    = "any"
-
-  translated_address = vcd_vapp_vm.vm_6.network[0].ip
-  translated_port    = "any"
-  protocol           = "tcp"
-}
 
 # Create the firewall to access IBM Cloud services over the IBM Cloud private network 
 resource "vcd_nsxv_firewall_rule" "rule_ibm_private" {
@@ -390,39 +375,7 @@ resource "vcd_vapp_vm" "vm_5" {
 
   }
 }
-# Create VM6
-resource "vcd_vapp_vm" "vm_6" {
-  vapp_name     = vcd_vapp.vmware_satellite_vapp.name
-  name          = "vm-rhel-06"
-  catalog_name  = "Public Catalog"
-  template_name = "RedHat-7-Template-Official"
-  memory        = 16384
-  cpus          = 4
-  override_template_disk {
-    bus_type         = "paravirtual"
-    size_in_mb       = "102400"
-    bus_number       = 0
-    unit_number      = 0
-    storage_profile  = "10 IOPS/GB"
-  }
 
-  guest_properties = {
-    "guest.hostname" = "vm-rhel-06"
-  }
-
-  network {
-    type               = "org"
-    name               = vcd_vapp_org_network.tutorial_network_new.org_network_name
-    ip_allocation_mode = "POOL"
-    is_primary         = true
-  }
-
-  customization {
-    auto_generate_password     = false
-    admin_password             = "Vmware@1234"
-
-  }
-}
 
 resource "null_resource"  "attachhost" {
 
@@ -459,6 +412,6 @@ resource "null_resource"  "attachhost" {
     host     = "${element(local.publiciplist,count.index)}"
    }
   }
-  depends_on = [vcd_vapp_vm.vm_1, vcd_vapp_vm.vm_2, vcd_vapp_vm.vm_3, vcd_vapp_vm.vm_4, vcd_vapp_vm.vm_5, vcd_vapp_vm.vm_6]
+  depends_on = [vcd_vapp_vm.vm_1, vcd_vapp_vm.vm_2, vcd_vapp_vm.vm_3, vcd_vapp_vm.vm_4, vcd_vapp_vm.vm_5]
 }
 
